@@ -1,9 +1,12 @@
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const graphql = require('graphql');
-const ExpressGraphQL = require('express-graphql');
+const ExpressGraphQL = require("express-graphql");
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
+
 const database = new sqlite3.Database("./my.db");
 
 const createContactTable = () => {
@@ -47,7 +50,7 @@ var queryType = new graphql.GraphQLObjectType({
             type: ContactType,
             args: {
                 id: {
-                    type: new graphql.GraphQLNonNull(GraphQLID)
+                    type: new graphql.GraphQLNonNull(graphql.GraphQLID)
                 }
             },
             resolve: (root, {
@@ -158,3 +161,13 @@ var mutationType = new graphql.GraphQLObjectType({
         }
     }
 });
+
+const schema = new graphql.GraphQLSchema({
+    query: queryType,
+    mutation: mutationType
+});
+
+app.use("/graphql", ExpressGraphQL({ schema:schema, graphiql: true}));
+app.listen(4000, () => {
+    console.log("Server running on http://localhost:4000")
+})
